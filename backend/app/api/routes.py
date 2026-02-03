@@ -9,11 +9,8 @@ assistant = VoiceAssistant()
 @router.post("/voice")
 async def process_voice(file: UploadFile = File(...), session_id: str = Form(...)):
     audio_bytes = await file.read()
-    
     audio_out, reply, transcript = await assistant.run(audio_bytes, session_id=session_id)
-    
     audio_base64 = base64.b64encode(audio_out).decode("utf-8")
-
     return JSONResponse({
         "transcript": transcript,
         "reply": reply,

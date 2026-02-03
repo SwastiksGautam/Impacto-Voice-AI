@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.api.routes import router  
+from app.api.routes import router
 
 app = FastAPI(title="Voice AI Assistant Backend")
 
@@ -16,7 +16,3 @@ app.include_router(router, prefix="/api")
 @app.get("/")
 def health_check():
     return {"status": "Backend is running"}
-
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
