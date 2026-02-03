@@ -99,21 +99,14 @@ def voice_assistant(audio_input):
 
 backend/
 ├── app/
-│   ├── api/
-│   │   └── routes.py
-│   ├── pipeline/
-│   │   └── assistant.py
-│   ├── stt/
-│   │   └── openai_stt.py
-│   ├── llm/
-│   │   └── openai_llm.py
-│   ├── tts/
-│   │   └── openai_tts.py
-│   └── config.py
-├── main.py
-├── requirements.txt
-Key Modules
-VoiceAssistant
+│   ├── api/routes.py         # FastAPI Endpoints
+│   ├── pipeline/assistant.py   # Orchestration (STT -> LLM -> TTS)
+│   ├── stt/openai_stt.py     # Whisper Wrapper
+│   ├── llm/openai_llm.py     # GPT Wrapper (History-aware)
+│   ├── tts/openai_tts.py     # TTS Wrapper
+│   └── config.py             # Model & API configurations
+├── main.py                   # Entry Point
+└── requirements.txt          # Pinned dependencies
 
 Orchestrates STT → LLM → TTS
 
