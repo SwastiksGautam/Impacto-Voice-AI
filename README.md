@@ -122,108 +122,142 @@ backend/
 ```
 
 
+## 🧠 System Architecture
 
-Orchestrates STT → LLM → TTS
+### 🔄 Voice Assistant Pipeline
+This application follows a modular **Speech → Intelligence → Speech** pipeline:
 
-Maintains session-specific conversation history
+1. **Speech-to-Text (STT)** – Converts user voice into text  
+2. **Large Language Model (LLM)** – Generates intelligent responses  
+3. **Text-to-Speech (TTS)** – Converts assistant responses back into audio  
 
-Trims history to control context size
+---
 
-STTService
+## ⚙️ Core Components
 
-Uses OpenAI Whisper (whisper-1)
+### 🎛️ Voice Assistant Orchestrator
+- Coordinates the full pipeline **STT → LLM → TTS**
+- Maintains **session-based conversation history**
+- Automatically trims history to control token usage and latency
+- Ensures smooth conversational flow
 
-Converts audio bytes into text
+---
 
-LLMService
+### 🎙️ STT Service
+- Powered by **OpenAI Whisper (`whisper-1`)**
+- Converts raw audio bytes into text transcripts
+- Optimized for multi-accent speech recognition
 
-Uses GPT-based chat completion
+---
 
-System prompt enforces concise, voice-friendly replies
+### 🤖 LLM Service
+- Uses **GPT-based chat completion**
+- Implements a **system prompt** to:
+  - Keep responses concise
+  - Maintain voice-friendly conversational tone
+- Supports context-aware conversation using session memory
 
-TTSService
+---
 
-Converts assistant text replies into audio
+### 🔊 TTS Service
+- Converts assistant responses into natural speech audio
+- Returns raw audio bytes for playback
+- Uses configurable voice and model selection
 
-Returns raw audio bytes
+---
 
-API Endpoints
-POST /api/voice
+## 🌐 API Endpoints
 
+### 🎤 `POST /api/voice`
 Processes user audio and returns:
+
+```json
 {
   "transcript": "User speech text",
   "reply": "Assistant response",
   "audio": "Base64-encoded audio"
 }
-POST /api/start_session
+```
 
-Starts a new conversation session.
+---
 
-POST /api/end_session
+### 🧾 `POST /api/start_session`
+- Initializes a new conversation session  
+- Enables contextual multi-turn conversation  
 
-Ends and clears a conversation session.
+---
 
-Configuration
+### 🛑 `POST /api/end_session`
+- Terminates an active session  
+- Clears stored conversation history  
 
-Environment variables:
+---
+
+## 🔧 Configuration
+
+### 🌱 Environment Variables
+```
 OPENAI_API_KEY=your_api_key_here
+```
 
-Model configuration:
+---
+
+### 🧩 Model Configuration
+```python
 LLM_MODEL = "gpt-4o-mini"
 STT_MODEL = "whisper-1"
 TTS_MODEL = "gpt-4o-mini-tts"
 TTS_VOICE = "alloy"
+```
 
-Frontend 
+---
 
-A minimal frontend is included to:
+## 🖥️ Frontend (Demo Only)
 
-Record microphone input
+A lightweight demonstration frontend is included to:
 
-Detect silence (VAD-style)
+- 🎤 Record microphone input
+- 🤫 Detect silence using VAD-style logic
+- 📡 Send audio to backend
+- 🔊 Play assistant voice responses
+- ✋ Support barge-in (interrupt assistant playback)
 
-Send audio to backend
+> The frontend is provided only for demonstration and is not required for assessment.
 
-Play assistant voice responses
+---
 
-Support barge-in (interrupt playback)
+## ⚖️ Design Trade-offs
 
-The frontend is not required for assessment and is provided only for demonstration.
+| Decision | Reason |
+|----------|-----------|
+| In-memory session storage | Reduces complexity and setup time |
+| Synchronous processing | Improves readability and debugging |
+| No streaming implementation | Keeps architecture simpler |
+| Short response generation | Optimized for voice interaction latency |
 
-Design Trade-offs
+---
 
-In-memory sessions instead of database (simplicity)
+## 📊 Evaluation Alignment
 
-Synchronous API calls for clarity
+This project highlights:
 
-No streaming to reduce complexity
+- ✅ Strong system architecture design  
+- ✅ Practical implementation of LLM workflows  
+- ✅ Understanding of Voice AI constraints  
+- ✅ Clean and modular code structure  
+- ✅ Explicit documentation of trade-offs  
 
-Short responses optimized for voice interactions
+---
 
-Evaluation Alignment
+## 📝 Notes
+- Some implementations are intentionally simplified  
+- Architecture is designed for easy extension:
+  - Streaming responses  
+  - Database session persistence  
+  - Horizontal scaling  
 
-This project demonstrates:
+---
 
-✅ System thinking & component separation
-
-✅ Practical LLM usage
-
-✅ Awareness of voice AI constraints
-
-✅ Clean, readable, modular code
-
-✅ Explicit design choices & trade-offs
-
-Notes
-
-Partial implementations are intentional
-
-Emphasis is on reasoning and architecture
-
-Easily extensible to streaming, persistence, or scaling
-
-Author
-
-Swastik
-AI Intern Candidate – LLMs & Voice AI
+## 👨‍💻 Author
+**Swastik**  
+AI Intern Candidate — LLMs & Voice AI
