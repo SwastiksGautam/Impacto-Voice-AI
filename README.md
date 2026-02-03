@@ -1,16 +1,221 @@
-Impacto Voice AI: Technical AssessmentAI Intern (LLMs & Voice AI)Candidate: SwastikProject: Voice-First Conversational AssistantPart A – System Design1. Architectural ComponentsThe system follows a modular, sequential pipeline designed for low latency and high reliability.Client-Side VAD (Voice Activity Detection): Implemented in the browser using Web Audio API (AnalyserNode). It monitors volume levels to detect silence (4-second threshold), reducing unnecessary server calls.STT Service (Speech-to-Text): Utilizes OpenAI’s Whisper-1 model. It handles multi-part form data (.wav) and transcribes binary audio into text.Session Context Manager: A stateful backend handler that maintains conversation history in a Python dictionary. It tracks a rolling window (last 10 messages) to provide memory without exceeding token limits.LLM Service: Powered by GPT-4o-mini. It uses a specialized system prompt to maintain a "concise voice assistant" persona, limited to 2-sentence responses for better Voice UX.TTS Service (Text-to-Speech): Uses OpenAI's TTS-1 (alloy voice) to convert text replies into high-quality MPEG audio.Frontend UI: A clean, CSS-gradient interface designed for mobile-first conversational flow.2. Data FlowInput: User speaks; Frontend captures audio and generates a session_id.Transmission: Audio blob + session_id are sent via POST to the FastAPI /api/voice endpoint.STT: Whisper transcribes audio $\rightarrow$ text.Inference: Text + Session History $\rightarrow$ GPT-4o-mini $\rightarrow$ Text Reply.Synthesis: Text Reply $\rightarrow$ TTS $\rightarrow$ Binary Audio.Output: Base64-encoded audio and text return to the Frontend for immediate playback and chat UI update.3. Critical Reasoning & Trade-offsLatency: To combat the "Thinking..." delay inherent in sequential STT-LLM-TTS pipelines, I chose the gpt-4o-mini model family, which significantly reduces Time-to-First-Byte (TTFB).Interruptibility (Barge-in): The frontend is programmed to immediately kill the AudioContext and current playback if the user taps the mic again, allowing for a natural conversation flow.Cost vs. Performance: Whisper-1 and GPT-4o-mini were selected to balance high-quality reasoning with low operational costs.Reliability: Implemented navigator.sendBeacon for session cleanup to ensure server resources are freed even if the user closes the tab abruptly.Part B – ImplementationCore TechnologiesBackend: FastAPI (Python 3.13), Uvicorn.AI Models: OpenAI Whisper (STT), GPT-4o-mini (LLM), TTS-1 (TTS).Frontend: Vanilla JavaScript, Web Audio API, HTML5/CSS3.Deployment: Render (Backend), Vercel (Frontend).Project StructurePlaintextbackend/
+# 🎤 Voice-Enabled AI Assistant  
+**AI Intern (LLMs & Voice AI) – Technical Assessment**
+
+---
+
+## Overview
+This project implements a **voice-enabled AI assistant** that accepts spoken input, converts it to text, generates a response using a Large Language Model (LLM), converts the response back to speech, and returns the audio output.
+
+The focus of this project is on **clean architecture, modular design, and reasoning**, rather than UI complexity.
+
+Both **real APIs (OpenAI)** and production-style design patterns are used, while keeping the system minimal and easy to understand.
+
+---
+
+## Problem Statement (Assessment Context)
+
+The assistant should:
+1. Accept user voice input  
+2. Convert **Speech → Text (STT)**  
+3. Generate a response using an **LLM**  
+4. Convert **Text → Speech (TTS)**  
+5. Return the audio response  
+
+A UI is **not required** for evaluation (a small demo UI is included only for testing).
+
+---
+
+## Part A – System Design
+
+### Components
+
+User Audio
+↓
+Speech-to-Text (Whisper)
+↓
+Conversation Manager (Session History)
+↓
+LLM (Reasoning)
+↓
+Text-to-Speech
+↓
+Audio Response
+
+
+
+### Core Services
+
+| Component | Responsibility |
+|--------|----------------|
+| STTService | Converts audio bytes to text |
+| LLMService | Generates responses using an LLM |
+| TTSService | Converts text to speech |
+| VoiceAssistant | Orchestrates pipeline & sessions |
+| FastAPI API | Exposes HTTP endpoints |
+
+---
+
+### Data Flow
+
+1. Client sends recorded audio to `/voice`
+2. Audio bytes → STT → transcript
+3. Transcript added to session history
+4. History passed to LLM
+5. LLM generates response text
+6. Response text → TTS → audio bytes
+7. Audio returned as Base64
+
+---
+
+### Latency, Cost & Failure Considerations
+
+| Area | Consideration |
+|----|-------------|
+| STT | Network + inference latency |
+| LLM | Token cost & response length |
+| TTS | Audio generation delay |
+| Sessions | In-memory, non-persistent |
+| Failures | Handled gracefully with fallbacks |
+
+Design decisions:
+- Responses limited to **2 sentences** for voice UX
+- Conversation history capped to last **10 messages**
+- No streaming to keep implementation simple
+- Stateless backend except for in-memory sessions
+
+---
+
+## Part B – Implementation
+
+### High-Level Pipeline
+
+```python
+def voice_assistant(audio_input):
+    text = speech_to_text(audio_input)
+    reply = generate_llm_response(text)
+    audio = text_to_speech(reply)
+    return audio
+```
+
+backend/
 ├── app/
-│   ├── api/routes.py       # FastAPI Route definitions
-│   ├── pipeline/assistant.py # Logic for STT->LLM->TTS flow
-│   ├── stt/openai_stt.py   # Whisper Service
-│   ├── llm/openai_llm.py   # GPT Service with History
-│   ├── tts/openai_tts.py   # TTS Service
-│   └── config.py           # Environment variables & Model Config
-├── main.py                 # Entry point
-└── requirements.txt        # Pinned dependencies
-Installation & SetupClone the repository:Bashgit clone https://github.com/SwastiksGautam/Impacto-Voice-AI.git
-cd backend
-Install dependencies:Bashpip install -r requirements.txt
-Environment Variables: Create a .env file in the backend/ folder:Code snippetOPENAI_API_KEY=your_sk_key_here
-Run the server:Bashuvicorn app.main:app --reload
-What We’re Evaluating (Self-Assessment)System Thinking: Demonstrated by the separation of STT, LLM, and TTS into distinct, interchangeable services.Voice Constraints: Solved the "long response" issue by enforcing 2-sentence limits in the system prompt.Error Handling: Implemented checks for transcription failures and backend connectivity issues.Scalability: While current sessions are in-memory, the architecture is "Redis-ready" for future production scaling.Next StepsI have fully deployed the Backend on Render and the Frontend on Vercel. You can test the live application here:Live App: https://impacto-voice-ai.vercel.appAPI Health Check: https://impacto-voice-ai.onrender.com/
+│   ├── api/
+│   │   └── routes.py
+│   ├── pipeline/
+│   │   └── assistant.py
+│   ├── stt/
+│   │   └── openai_stt.py
+│   ├── llm/
+│   │   └── openai_llm.py
+│   ├── tts/
+│   │   └── openai_tts.py
+│   └── config.py
+├── main.py
+├── requirements.txt
+Key Modules
+VoiceAssistant
+
+Orchestrates STT → LLM → TTS
+
+Maintains session-specific conversation history
+
+Trims history to control context size
+
+STTService
+
+Uses OpenAI Whisper (whisper-1)
+
+Converts audio bytes into text
+
+LLMService
+
+Uses GPT-based chat completion
+
+System prompt enforces concise, voice-friendly replies
+
+TTSService
+
+Converts assistant text replies into audio
+
+Returns raw audio bytes
+
+API Endpoints
+POST /api/voice
+
+Processes user audio and returns:
+{
+  "transcript": "User speech text",
+  "reply": "Assistant response",
+  "audio": "Base64-encoded audio"
+}
+POST /api/start_session
+
+Starts a new conversation session.
+
+POST /api/end_session
+
+Ends and clears a conversation session.
+
+Configuration
+
+Environment variables:
+OPENAI_API_KEY=your_api_key_here
+
+Model configuration:
+LLM_MODEL = "gpt-4o-mini"
+STT_MODEL = "whisper-1"
+TTS_MODEL = "gpt-4o-mini-tts"
+TTS_VOICE = "alloy"
+
+Frontend 
+
+A minimal frontend is included to:
+
+Record microphone input
+
+Detect silence (VAD-style)
+
+Send audio to backend
+
+Play assistant voice responses
+
+Support barge-in (interrupt playback)
+
+The frontend is not required for assessment and is provided only for demonstration.
+
+Design Trade-offs
+
+In-memory sessions instead of database (simplicity)
+
+Synchronous API calls for clarity
+
+No streaming to reduce complexity
+
+Short responses optimized for voice interactions
+
+Evaluation Alignment
+
+This project demonstrates:
+
+✅ System thinking & component separation
+
+✅ Practical LLM usage
+
+✅ Awareness of voice AI constraints
+
+✅ Clean, readable, modular code
+
+✅ Explicit design choices & trade-offs
+
+Notes
+
+Partial implementations are intentional
+
+Emphasis is on reasoning and architecture
+
+Easily extensible to streaming, persistence, or scaling
+
+Author
+
+Swastik
+AI Intern Candidate – LLMs & Voice AI
