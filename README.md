@@ -95,29 +95,32 @@ def voice_assistant(audio_input):
     reply = generate_llm_response(text)
     audio = text_to_speech(reply)
     return audio
+## 📂 Project Structure
 ```
-
+```
 backend/
 ├── app/
 │   ├── api/
-│   │   └── routes.py              # FastAPI Endpoints
+│   │   └── routes.py                 # FastAPI Endpoints
 │   │
 │   ├── pipeline/
-│   │   └── assistant.py           # Orchestration (STT -> LLM -> TTS)
+│   │   └── assistant.py              # Orchestration (STT -> LLM -> TTS)
 │   │
 │   ├── stt/
-│   │   └── openai_stt.py          # Whisper Wrapper
+│   │   └── openai_stt.py             # Whisper Wrapper
 │   │
 │   ├── llm/
-│   │   └── openai_llm.py          # GPT Wrapper (History-aware)
+│   │   └── openai_llm.py             # GPT Wrapper (History-aware)
 │   │
 │   ├── tts/
-│   │   └── openai_tts.py          # TTS Wrapper
+│   │   └── openai_tts.py             # TTS Wrapper
 │   │
-│   └── config.py                  # Model & API configurations
+│   └── config.py                     # Model & API configurations
 │
-├── main.py                        # Entry Point
-└── requirements.txt               # Pinned dependencies
+├── main.py                           # Entry Point
+└── requirements.txt                  # Pinned dependencies
+```
+
 
 
 Orchestrates STT → LLM → TTS
